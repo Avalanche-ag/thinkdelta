@@ -1,0 +1,3 @@
+# Python dependencies for ThinkDelta local dev server
+flask>=2.3.0
+flask-cors>=4.0.0

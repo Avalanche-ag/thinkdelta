@@ -3,14 +3,21 @@
  * 
  * Architecture:
  * - Static frontend (vanilla JS, no build step)
- * - Curated examples loaded from examples.json
- * - Live API code is present but commented out
- * - To enable live MiniMax API: uncomment the API block below
- *   and point it to your backend proxy (Cloudflare Worker, etc.)
+ * - Curated examples loaded from examples.json (works immediately on GitHub Pages)
+ * - Optional live backend proxy for real MiniMax API calls
+ * 
+ * To enable live API: deploy the backend in /backend/ and update BACKEND_URL below.
  */
 
 (function() {
   'use strict';
+
+  // ============================================
+  // CONFIG: Set this to your deployed backend URL
+  // ============================================
+  // Example: 'https://thinkdelta-api.YOUR_SUBDOMAIN.workers.dev'
+  // Leave as empty string '' to use static examples + fallback only
+  const BACKEND_URL = '';
 
   // DOM Elements
   const els = {
@@ -24,11 +31,13 @@
     textShift: document.getElementById('textShift'),
     textBlind: document.getElementById('textBlind'),
     textSynthesis: document.getElementById('textSynthesis'),
+    actionNote: document.querySelector('.action-note'),
   };
 
   // State
   let examples = [];
   let activeExampleId = null;
+  let backendAvailable = null; // null = not checked yet
 
   // ============================================
   // LOAD EXAMPLES
@@ -39,6 +48,7 @@
       const data = await res.json();
       examples = data.examples || [];
       renderChips();
+      updateModeIndicator();
       // Auto-select first example
       if (examples.length > 0) {
         selectExample(examples[0].id);
@@ -46,6 +56,23 @@
     } catch (err) {
       console.error('Failed to load examples:', err);
       els.exampleChips.innerHTML = '<span class="chip">Error loading examples</span>';
+    }
+  }
+
+  // ============================================
+  // UPDATE MODE INDICATOR
+  // ============================================
+  function updateModeIndicator() {
+    if (!BACKEND_URL) {
+      els.actionNote.innerHTML = `
+        This is a static demo with curated examples. 
+        <a href="#architecture" class="link">See architecture notes &darr;</a>
+      `;
+    } else {
+      els.actionNote.innerHTML = `
+        Live AI mode enabled. Custom inputs will call the MiniMax API. 
+        <a href="#architecture" class="link">See architecture notes &darr;</a>
+      `;
     }
   }
 
@@ -109,16 +136,24 @@
     const originalText = els.analyzeBtn.querySelector('.btn-text').textContent;
     els.analyzeBtn.querySelector('.btn-text').textContent = 'Analyzing';
 
-    // Try to find matching example for instant response
-    const matched = findMatchingExample(textA, textB);
-
-    if (matched) {
-      // Use cached response
-      displayResults(matched.analysis);
-    } else {
-      // Fallback: show a generic thoughtful response
-      // In a live setup, this would call the API
-      displayResults(generateFallbackAnalysis(textA, textB));
+    try {
+      // Priority 1: Exact match in curated examples
+      const matched = findMatchingExample(textA, textB);
+      if (matched) {
+        displayResults(matched.analysis, 'cached');
+      }
+      // Priority 2: Live backend (if configured and available)
+      else if (BACKEND_URL && await isBackendAvailable()) {
+        const result = await callBackend(textA, textB);
+        displayResults(result.analysis, 'live');
+      }
+      // Priority 3: Fallback template
+      else {
+        displayResults(generateFallbackAnalysis(textA, textB), 'fallback');
+      }
+    } catch (err) {
+      console.error('Analysis error:', err);
+      displayResults(generateFallbackAnalysis(textA, textB), 'fallback');
     }
 
     // Reset button
@@ -128,10 +163,45 @@
   }
 
   // ============================================
+  // BACKEND AVAILABILITY CHECK
+  // ============================================
+  async function isBackendAvailable() {
+    if (backendAvailable !== null) return backendAvailable;
+    if (!BACKEND_URL) {
+      backendAvailable = false;
+      return false;
+    }
+    try {
+      const res = await fetch(BACKEND_URL, { method: 'OPTIONS', signal: AbortSignal.timeout(3000) });
+      backendAvailable = res.ok;
+    } catch {
+      backendAvailable = false;
+    }
+    return backendAvailable;
+  }
+
+  // ============================================
+  // CALL LIVE BACKEND
+  // ============================================
+  async function callBackend(textA, textB) {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ textA, textB })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Backend error: ${res.status}`);
+    }
+
+    return await res.json();
+  }
+
+  // ============================================
   // FIND MATCHING EXAMPLE (by text similarity)
   // ============================================
   function findMatchingExample(textA, textB) {
-    // Simple exact match for demo
     return examples.find(ex => {
       const aMatch = normalize(ex.textA) === normalize(textA);
       const bMatch = normalize(ex.textB) === normalize(textB);
@@ -146,14 +216,27 @@
   // ============================================
   // DISPLAY RESULTS
   // ============================================
-  function displayResults(analysis) {
+  function displayResults(analysis, source) {
     els.textShift.textContent = analysis.assumptionShift;
     els.textBlind.textContent = analysis.blindSpot;
     els.textSynthesis.textContent = analysis.synthesis;
 
-    els.resultsSection.classList.add('visible');
+    // Update model badge based on source
+    const modelBadge = document.querySelector('.results-model');
+    if (modelBadge) {
+      if (source === 'live') {
+        modelBadge.textContent = 'Powered by MiniMax M2.7 (Live)';
+        modelBadge.style.color = '#4ade80';
+      } else if (source === 'cached') {
+        modelBadge.textContent = 'Powered by MiniMax M2.7 (Cached)';
+        modelBadge.style.color = '#8888a0';
+      } else {
+        modelBadge.textContent = 'Template Analysis (Backend Not Connected)';
+        modelBadge.style.color = '#555566';
+      }
+    }
 
-    // Smooth scroll to results
+    els.resultsSection.classList.add('visible');
     els.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -179,55 +262,11 @@
   }
 
   // ============================================
-  // LIVE API INTEGRATION (commented out)
-  // ============================================
-  /*
-  async function callMiniMaxAPI(textA, textB) {
-    const API_URL = 'https://your-worker.your-subdomain.workers.dev/analyze';
-    // Backend proxy required because MiniMax doesn't support CORS
-    
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ textA, textB })
-    });
-    
-    if (!response.ok) throw new Error('API request failed');
-    return await response.json();
-  }
-  
-  // Proxy implementation (Cloudflare Worker):
-  // export default {
-  //   async fetch(request, env) {
-  //     if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
-  //     const { textA, textB } = await request.json();
-  //     const minimaxRes = await fetch('https://api.minimax.io/v1/chat/completions', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Authorization': `Bearer ${env.MINIMAX_API_KEY}`,
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         model: 'MiniMax-M2.7',
-  //         messages: [
-  //           { role: 'system', content: 'You are a cognitive analysis engine...' },
-  //           { role: 'user', content: `Version A: ${textA}\n\nVersion B: ${textB}` }
-  //         ],
-  //         temperature: 0.7
-  //       })
-  //     });
-  //     return new Response(minimaxRes.body, { headers: { 'Content-Type': 'application/json' } });
-  //   }
-  // };
-  */
-
-  // ============================================
   // EVENT LISTENERS
   // ============================================
   els.analyzeBtn.addEventListener('click', analyzeThinking);
 
   els.inputA.addEventListener('input', () => {
-    // If user modifies text, clear active example
     const ex = examples.find(e => e.id === activeExampleId);
     if (ex && els.inputA.value !== ex.textA) {
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));

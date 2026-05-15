@@ -30,28 +30,48 @@ This is a **static frontend** built with vanilla HTML, CSS, and JavaScript. No b
 
 The live demo uses **pre-generated responses** from MiniMax M2.7, stored in `examples.json`. Six curated examples cover essay revision, argument evolution, product pivots, personal growth, code explanation, and philosophical debate.
 
-The frontend code includes a commented-out live API integration block. To enable live calls:
-
-1. Deploy a backend proxy (e.g., Cloudflare Worker) that holds your MiniMax API key securely.
-2. Uncomment the API block in `app.js` and point it to your proxy endpoint.
-3. The proxy forwards requests to `https://api.minimax.io/v1/chat/completions` and returns responses.
+The frontend code supports an **optional live backend** — simply update `BACKEND_URL` in `app.js` and the app will call your proxy for custom inputs.
 
 ### Regenerating Examples
 
 To replace the cached responses with fresh MiniMax outputs:
 
 ```bash
+cd backend
 export MINIMAX_API_KEY="your-key-here"
 python3 generate_examples.py
 ```
 
 This calls the MiniMax API for all 6 examples and writes the results to `examples.json`.
 
+## Backend (Optional — For Live API Calls)
+
+To enable real-time AI for custom user inputs, deploy the backend proxy in `/backend/`:
+
+**Option A: Cloudflare Worker** (recommended, free tier)
+- See `backend/README.md` for deployment instructions
+- Stores your API key securely in Cloudflare secrets
+- Global edge deployment, ~50ms latency
+
+**Option B: Local Development**
+```bash
+cd backend
+pip install -r requirements.txt
+export MINIMAX_API_KEY="your-key-here"
+python3 server.py
+# Open http://localhost:5000
+```
+
+**Option C: Render / Railway / Fly.io**
+- See `backend/README.md` for platform-specific instructions
+
 ## Tech Stack
 
 - **Frontend:** Vanilla HTML5, CSS3, ES6+ (no frameworks)
 - **AI Model:** MiniMax M2.7 (via `api.minimax.io`)
-- **Hosting:** GitHub Pages
+- **Static Hosting:** GitHub Pages
+- **Backend Proxy:** Cloudflare Worker (optional)
+- **Local Dev:** Python Flask
 - **Deployment:** GitHub Actions workflow (`.github/workflows/pages.yml`)
 
 ## Files
@@ -60,9 +80,14 @@ This calls the MiniMax API for all 6 examples and writes the results to `example
 |------|---------|
 | `index.html` | Main app UI |
 | `style.css` | Brutalist dark theme, responsive design |
-| `app.js` | Interactivity, example loader, analysis display |
+| `app.js` | Interactivity, example loader, analysis display, optional backend calls |
 | `examples.json` | 6 curated MiniMax responses |
 | `generate_examples.py` | Script to regenerate examples via MiniMax API |
+| `backend/worker.js` | Cloudflare Worker proxy code |
+| `backend/server.py` | Local Flask dev server |
+| `backend/wrangler.toml` | Cloudflare Worker config |
+| `backend/requirements.txt` | Python dependencies |
+| `backend/README.md` | Backend deployment guide |
 | `.github/workflows/pages.yml` | Auto-deploy to GitHub Pages on every push |
 
 ## Design Notes
@@ -71,6 +96,7 @@ This calls the MiniMax API for all 6 examples and writes the results to `example
 - **Mobile-responsive:** Works on phones, tablets, and desktops.
 - **Zero dependencies:** Loads in under 200KB total (mostly fonts).
 - **Accessibility:** Semantic HTML, keyboard-navigable, focus states.
+- **Progressive enhancement:** Works as static demo; live AI is an optional upgrade.
 
 ## About
 

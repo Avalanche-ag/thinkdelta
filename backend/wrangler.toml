@@ -1,0 +1,9 @@
+name = "thinkdelta-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# To deploy:
+#   npx wrangler deploy
+#   npx wrangler secret put MINIMAX_API_KEY
+#
+# Then update the BACKEND_URL in ../app.js

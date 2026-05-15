@@ -1,15 +1,15 @@
-/**
- * ThinkDelta — Local Development Server
- * 
- * This Flask server serves the static frontend AND proxies
- * MiniMax API calls, so you can test the full live experience locally.
- * 
- * Usage:
- *   export MINIMAX_API_KEY="your-key-here"
- *   python3 backend/server.py
- *   
- *   Open http://localhost:5000 in your browser.
- */
+"""
+ThinkDelta — Local Development Server
+
+This Flask server serves the static frontend AND proxies
+MiniMax API calls, so you can test the full live experience locally.
+
+Usage:
+  export MINIMAX_API_KEY="your-key-here"
+  python3 backend/server.py
+
+  Open http://localhost:5000 in your browser.
+"""
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -123,4 +123,4 @@ if __name__ == '__main__':
     print("\nOpen http://localhost:5000 in your browser")
     print("Press Ctrl+C to stop")
     print("=" * 50)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8765, debug=True)

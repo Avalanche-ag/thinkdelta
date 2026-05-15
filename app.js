@@ -17,7 +17,7 @@
   // ============================================
   // Example: 'https://thinkdelta-api.YOUR_SUBDOMAIN.workers.dev'
   // Leave as empty string '' to use static examples + fallback only
-  const BACKEND_URL = '';
+  const BACKEND_URL = 'https://mitsubishi-giant-often-match.trycloudflare.com';
 
   // DOM Elements
   const els = {

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThinkDelta — Cognitive Diff for Ideas</title>
+  <meta name="description" content="A tool that shows what changed in your thinking, not just your words.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">△</span>
+        <span class="logo-text">ThinkDelta</span>
+      </div>
+      <p class="tagline">A cognitive diff for your ideas. Paste two versions. See what changed beneath the words.</p>
+    </header>
+
+    <main class="main">
+      <section class="examples-bar">
+        <span class="examples-label">Try an example:</span>
+        <div class="example-chips" id="exampleChips"></div>
+      </section>
+
+      <section class="inputs-section">
+        <div class="input-column">
+          <div class="input-header">
+            <span class="input-label">Version A</span>
+            <span class="input-badge" id="badgeA">Draft</span>
+          </div>
+          <textarea id="inputA" placeholder="Paste your first version here..." spellcheck="false"></textarea>
+        </div>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-icon">→</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="input-column">
+          <div class="input-header">
+            <span class="input-label">Version B</span>
+            <span class="input-badge" id="badgeB">Revision</span>
+          </div>
+          <textarea id="inputB" placeholder="Paste your revised version here..." spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section class="action-section">
+        <button class="analyze-btn" id="analyzeBtn" disabled>
+          <span class="btn-text">Analyze Thinking</span>
+          <span class="btn-icon">▶</span>
+        </button>
+        <p class="action-note">
+          This is a static demo with curated examples. 
+          <a href="#architecture" class="link">See architecture notes ↓</a>
+        </p>
+      </section>
+
+      <section class="results-section" id="resultsSection">
+        <div class="results-header">
+          <h2 class="results-title">Cognitive Analysis</h2>
+          <span class="results-model">Powered by MiniMax M2.7</span>
+        </div>
+
+        <div class="results-grid">
+          <div class="result-card" id="cardShift">
+            <div class="card-header">
+              <span class="card-icon">🔄</span>
+              <h3 class="card-title">Assumption Shift</h3>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="textShift"></p>
+            </div>
+          </div>
+
+          <div class="result-card" id="cardBlind">
+            <div class="card-header">
+              <span class="card-icon">👁️</span>
+              <h3 class="card-title">Hidden Blind Spot</h3>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="textBlind"></p>
+            </div>
+          </div>
+
+          <div class="result-card result-card--wide" id="cardSynthesis">
+            <div class="card-header">
+              <span class="card-icon">💡</span>
+              <h3 class="card-title">The Synthesis</h3>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="textSynthesis"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="architecture-section" id="architecture">
+        <h2 class="architecture-title">How This Works</h2>
+        <div class="architecture-grid">
+          <div class="arch-card">
+            <span class="arch-num">01</span>
+            <h3>The Challenge</h3>
+            <p>GitHub Pages is static-only. MiniMax API doesn't support CORS for client-side calls. A live backend proxy would be needed for real-time AI.</p>
+          </div>
+          <div class="arch-card">
+            <span class="arch-num">02</span>
+            <h3>The Solution</h3>
+            <p>Pre-generated 6 real MiniMax M2.7 responses via Python script. Static JSON serves as a snapshot. Full live-API code architecture is in <code>app.js</code> — swap the JSON fetch for an <code>fetch()</code> to your proxy and it works.</p>
+          </div>
+          <div class="arch-card">
+            <span class="arch-num">03</span>
+            <h3>Live API Path</h3>
+            <p>Run <code>python3 generate_examples.py --key YOUR_MINIMAX_KEY</code> to regenerate with real responses. Or deploy a Cloudflare Worker proxy and uncomment the live API block in <code>app.js</code>.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Built for the Activate AI Fellows application · 2026</p>
+      <p><a href="https://github.com/Avalanche-ag/thinkdelta" target="_blank">View source on GitHub ↗</a></p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

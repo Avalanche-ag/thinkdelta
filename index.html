@@ -105,18 +105,18 @@
         <div class="architecture-grid">
           <div class="arch-card">
             <span class="arch-num">01</span>
-            <h3>The Challenge</h3>
-            <p>GitHub Pages is static-only. MiniMax API doesn't support CORS for client-side calls. A live backend proxy would be needed for real-time AI.</p>
+            <h3>The Frontend</h3>
+            <p>Static site on GitHub Pages. Two text editors + three analysis cards. Zero build step, zero dependencies. Works instantly anywhere.</p>
           </div>
           <div class="arch-card">
             <span class="arch-num">02</span>
-            <h3>The Solution</h3>
-            <p>Pre-generated 6 real MiniMax M2.7 responses via Python script. Static JSON serves as a snapshot. Full live-API code architecture is in <code>app.js</code> — swap the JSON fetch for an <code>fetch()</code> to your proxy and it works.</p>
+            <h3>The Backend</h3>
+            <p>Flask server proxies MiniMax API calls securely. API key never touches the browser. CORS-enabled so the GitHub Pages frontend can reach it. Deployed via Cloudflare Tunnel for public access.</p>
           </div>
           <div class="arch-card">
             <span class="arch-num">03</span>
-            <h3>Live API Path</h3>
-            <p>Run <code>python3 generate_examples.py --key YOUR_MINIMAX_KEY</code> to regenerate with real responses. Or deploy a Cloudflare Worker proxy and uncomment the live API block in <code>app.js</code>.</p>
+            <h3>The AI</h3>
+            <p>MiniMax M2.7 reasoning model generates the three insights. For curated examples, responses are cached for instant loading. For custom inputs, the model generates fresh analysis in real-time.</p>
           </div>
         </div>
       </section>
